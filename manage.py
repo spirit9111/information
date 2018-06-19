@@ -1,4 +1,6 @@
-from flask import Flask
+import logging
+
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 import redis
@@ -19,6 +21,7 @@ manager.add_command('db', MigrateCommand)
 @app.route('/')
 @app.route('/index')
 def index():
+	logging.debug('111111111111')
 	return '<h1>index</h1>'
 
 
