@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 
 db = SQLAlchemy()
-redis_store = None
+redis_store = None  # type: StrictRedis
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -38,4 +38,6 @@ def create_app(config_name):
 	Session(app)
 	from info.modules.index import index_blu
 	app.register_blueprint(index_blu)
+	from info.modules.passport import passport_blu
+	app.register_blueprint(passport_blu)
 	return app
