@@ -2,8 +2,7 @@ import redis
 from flask import logging
 
 
-class Config:
-
+class Config(object):
 	DEBUG = True
 	SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:w92z12x14@127.0.0.1:3306/information"
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
