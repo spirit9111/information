@@ -164,26 +164,74 @@ function generateImageCode() {
 
 // 发送短信验证码
 function sendSMSCode() {
-	// 校验参数，保证输入框有数据填写
-	$(".get_code").removeAttr("onclick");
-	var mobile = $("#register_mobile").val();
-	if (!mobile) {
-		$("#register-mobile-err").html("请填写正确的手机号！");
-		$("#register-mobile-err").show();
-		$(".get_code").attr("onclick", "sendSMSCode();");
-		return;
-	}
-	var imageCode = $("#imagecode").val();
-	if (!imageCode) {
-		$("#image-code-err").html("请填写验证码！");
-		$("#image-code-err").show();
-		$(".get_code").attr("onclick", "sendSMSCode();");
-		return;
-	}
+    // 校验参数，保证输入框有数据填写
+    $(".get_code").removeAttr("onclick");
+    var mobile = $("#register_mobile").val();
+    if (!mobile) {
+        $("#register-mobile-err").html("请填写正确的手机号！");
+        $("#register-mobile-err").show();
+        $(".get_code").attr("onclick", "sendSMSCode();");
+        return;
+    }
+    var imageCode = $("#imagecode").val();
+    if (!imageCode) {
+        $("#image-code-err").html("请填写验证码！");
+        $("#image-code-err").show();
+        $(".get_code").attr("onclick", "sendSMSCode();");
+        return;
+    }
 
-	// TODO 发送短信验证码
+    // 发送短信验证码
+    var params = {
+        "mobile": mobile,
+        "image_code":imageCode,
+        "image_code_id": imageCodeId
+    }
+
+    // 发起短信请求
+    $.ajax({
+        // 请求地址
+        url: "/passport/sms_code",
+        // 请求方式
+        type: "post",
+        // 请求参数
+        data: JSON.stringify(params),
+        headers: {
+            "X-CSRFToken": getCookie('csrf_token')
+        },
+        // 请求参数的数据类型
+        contentType: "application/json",
+        success: function (response) {
+            if (response.errno == "0") {
+                // 代表发送成功
+                var num = 60
+                var t = setInterval(function () {
+
+                    if (num == 1) {
+                        // 代表倒计时结束
+                        // 清除倒计时
+                        clearInterval(t)
+
+                        // 设置显示内容
+                        $(".get_code").html("点击获取验证码")
+                        // 添加点击事件
+                        $(".get_code").attr("onclick", "sendSMSCode();");
+                    }else {
+                        num -= 1
+                        // 设置 a 标签显示的内容
+                        $(".get_code").html(num + "秒")
+                    }
+                }, 1000)
+            }else {
+                // 代表发送失败
+                alert(response.errmsg)
+                $(".get_code").attr("onclick", "sendSMSCode();");
+            }
+        }
+
+    })
+
 }
-
 // 调用该函数模拟点击左侧按钮
 function fnChangeMenu(n) {
 	var $li = $('.option_list li');

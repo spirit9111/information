@@ -34,7 +34,7 @@ def create_app(config_name):
 	db.init_app(app)
 	global redis_store
 	redis_store = redis.StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
-	CSRFProtect(app)
+	# CSRFProtect(app)
 	Session(app)
 	from info.modules.index import index_blu
 	app.register_blueprint(index_blu)

@@ -1,7 +1,7 @@
 import random
 import re
 
-from flask import request, json, jsonify, current_app
+from flask import request, json, jsonify, current_app, make_response
 from info import redis_store
 from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
 from info.libs.dysms_python.send_2_mes import send_2_mes
@@ -20,13 +20,18 @@ def get_image_code():
 	name, text, image = captcha.generate_captcha()
 	# 3.将uuid和真实数据保存到redis,并添加超时时间
 	redis_store.set(img_code_id, text, IMAGE_CODE_REDIS_EXPIRES)
-	# 4.将生成的图片返回给前段展示
-	return image
+
+	# 4.设置respons数据的类型
+	# 5.创建response对象
+	response = make_response(image)
+	response.headers["Content-Type"] = "image/jpg"
+	# 6.将生成的图片返回给前段展示
+	return response
 
 
-@passport_blu.route('/register', methods=['POST', 'GET'])
-def register():
-	pass
+@passport_blu.route('/sms_code', methods=['POST', 'GET'])
+def send_sms_code():
+	return jsonify(errno=RET.OK, errmsg="发送成功")
 	# 当点击发送短信时,获取前段发送的数据JSON格式,转换为字典进行操作
 	data_dict = json.loads(request.data)
 	# 获取手机号/验证码/uuid,取出来是string
@@ -68,5 +73,5 @@ def register():
 		# 保存时出现异常
 		return jsonify(errno=RET.DBERR, errmsg="保存验证码出现异常")
 
-	# 7. 返回发送成功的响应
+	# 返回发送成功的响应
 	return jsonify(errno=RET.OK, errmsg="发送成功")
