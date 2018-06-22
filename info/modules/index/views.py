@@ -10,7 +10,7 @@ from . import index_blu
 @index_blu.route('/')
 @index_blu.route('/index')
 def index():
-	# 从session获取user_id或者电话
+	# 从session获取user_id或者电话/ 应该能获取到token
 	user_id = session.get('user_id', None)
 	# 如果没有设置,在直接访问时会报错
 	user = None

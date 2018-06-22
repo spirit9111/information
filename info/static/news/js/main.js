@@ -124,6 +124,9 @@ $(function () {
 			data: JSON.stringify(ob_dict),
 			contentType: 'application/json',
 			dataType: 'json',
+			headers: {
+				"X-CSRFToken": getCookie("csrf_token")
+			},
 			success: function (response) {
 				if (response.errno == 0) {
 					location.reload()
@@ -186,6 +189,9 @@ $(function () {
 			data: JSON.stringify(ob_dict),
 			contentType: "application/json",
 			dataType: "json",
+			headers: {
+				"X-CSRFToken": getCookie("csrf_token")
+			},
 			success: function (response) {
 				if (response.errno == 0) {
 					//如果成功刷新
@@ -247,6 +253,9 @@ function sendSMSCode() {
 		data: JSON.stringify(params),
 		contentType: "application/json",
 		dataType: "json",
+		headers: {
+			"X-CSRFToken": getCookie("csrf_token")
+		},
 		// 如果发送成功
 		success: function (response) {
 			//接受后端的errno在进行操作

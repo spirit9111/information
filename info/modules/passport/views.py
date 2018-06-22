@@ -2,7 +2,7 @@ import random
 import re
 from datetime import datetime
 
-from flask import request, json, jsonify, current_app, make_response, session, render_template
+from flask import request, json, jsonify, current_app, make_response, session, render_template, redirect, url_for
 from info import redis_store, db
 from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
 from info.libs.dysms_python.send_2_mes import send_2_mes
@@ -19,8 +19,10 @@ def logout():
 	session.pop('mobile')
 	session.pop('user_id')
 	session.pop('nick_name')
-	return render_template('news/index.html')
+	return redirect(url_for('index.index'))
 
+
+# return redirect(url_for('index.index'))
 
 
 @passport_blu.route('/login', methods=['POST'])
@@ -53,12 +55,11 @@ def login():
 	# 保持登录状态
 	session['mobile'] = user.mobile
 	session['user_id'] = user.id
-	session['nick_name'] = user.mobile
+	session['nick_name'] = user.nick_name
 	# 更新最后的登录时间
 	user.last_login = datetime.now()
 	# 返回状态给前端
 	return jsonify(errno=RET.OK, errmsg='登陆成功')
-
 
 
 @passport_blu.route('/register', methods=['POST'])
@@ -100,7 +101,7 @@ def register():
 	# 保持登录状态
 	session['mobile'] = user.mobile
 	session['user_id'] = user.id
-	session['nick_name'] = user.mobile
+	session['nick_name'] = user.nick_name
 	# 返回消息给状态信息给前端
 	return jsonify(errno=RET.OK, errmsg='注册成功')
 

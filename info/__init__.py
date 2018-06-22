@@ -1,8 +1,11 @@
+from urllib import response
+
 import redis
 from flask import Flask
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 
 db = SQLAlchemy()
 redis_store = None  # type: StrictRedis
@@ -34,9 +37,21 @@ def create_app(config_name):
 	db.init_app(app)
 	global redis_store
 	redis_store = redis.StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
-	# Todo 开启CSRF保护功能
-	# CSRFProtect(app)
+
+	# Todo 开启CSRF保护功能 1.cookie中设置 2.往表单中设置
+	# CSRFProtect可以自动验证来自 表单 和 cookie 中的csrf_token
+	CSRFProtect(app)
+
 	Session(app)
+
+	# 使用钩子函数设置cookie
+	@app.after_request
+	def set_csrf_token(response):
+		# 生成csrf_token
+		csrf_token = generate_csrf()
+		response.set_cookie('csrf_token', csrf_token)
+		return response
+
 	from info.modules.index import index_blu
 	app.register_blueprint(index_blu)
 	from info.modules.passport import passport_blu
