@@ -3,6 +3,7 @@ from flask import render_template, current_app
 from . import index_blu
 
 
+# Todo 右上角登录/退出/注册/头像实现
 @index_blu.route('/')
 @index_blu.route('/index')
 def index():

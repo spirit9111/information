@@ -112,6 +112,33 @@ $(function () {
 		}
 
 		// 发起登录请求
+		// 获取数据(手机号/密码)
+		var ob_dict = {
+			'mobile': mobile,
+			'password': password
+		}
+		//ajax发送
+		$.ajax({
+			url: '/passport/login',
+			type: 'post',
+			data: JSON.stringify(ob_dict),
+			contentType: 'application/json',
+			dataType: 'json',
+			success: function (response) {
+				if (response.errno == 0) {
+					location.reload()
+
+				}
+				else {
+					alert(response.errmsg)
+					$("#login-password-err").html(resp.errmsg)
+					$("#login-password-err").show()
+				}
+			}
+
+
+		})
+
 	})
 
 
@@ -146,7 +173,32 @@ $(function () {
 		}
 
 		// 发起注册请求
+		// 获取数据(mobile/password/smscode)
+		var ob_dict = {
+			'mobile': mobile,
+			'password': password,
+			'smscode': smscode,
+		}
+		// 将数据传送到后端
+		$.ajax({
+			url: '/passport/register',
+			type: 'post',
+			data: JSON.stringify(ob_dict),
+			contentType: "application/json",
+			dataType: "json",
+			success: function (response) {
+				if (response.errno == 0) {
+					//如果成功刷新
+					location.reload()
+				}
+				else {
+					alert(response.errmsg)
+					$("#register-password-err").html(resp.errmsg)
+					$("#register-password-err").show()
+				}
+			}
 
+		})
 	})
 })
 
@@ -195,43 +247,46 @@ function sendSMSCode() {
 		data: JSON.stringify(params),
 		contentType: "application/json",
 		dataType: "json",
-		// 如果成功
+		// 如果发送成功
 		success: function (response) {
+			//接受后端的errno在进行操作
 			if (response.errno == "0") {
-			// 设置倒计时60s,期间不能再次点击发送按键
-			var time = 60;
-			var t = setInterval(function () {
-				//倒计时归零,允许再次点击操作
-				if (time == 1) {
-					//	首先清除倒计时t
-					clearInterval(t);
-					//	然后显示 获取验证码
-					$(".get_code").html("获取验证码");
-					//	回复点击时间,允许再次点击
-					$(".get_code").attr("onclick", "sendSMSCode()");
+				// 设置倒计时60s,期间不能再次点击发送按键
+				var time = 60;
+				var t = setInterval(function () {
+					//倒计时归零,允许再次点击操作
+					if (time == 1) {
+						//	首先清除倒计时t
+						clearInterval(t);
+						//	然后显示 获取验证码
+						$(".get_code").html("获取验证码");
+						//	回复点击时间,允许再次点击
+						$(".get_code").attr("onclick", "sendSMSCode()");
 
+					}
+					//倒计时不为零,阻止点击操作
+					else {
+						time -= 1
+						$(".get_code").html(time + 's后重发')
+					}
+				}, 1000)
+			} else {
+				// 表示后端出现了错误，可以将错误信息展示到前端页面中
+				alert(response.errmsg);
+				// $("#register-sms-code-err").html(resp.errmsg);
+				// $("#register-sms-code-err").show();
+				// 将点击按钮的onclick事件函数恢复回去
+				$(".get_code").attr("onclick", "sendSMSCode();");
+				// 如果错误码是4004，代表验证码错误，重新生成验证码
+				if (resp.errno == "4004") {
+					generateImageCode()
 				}
-				//倒计时不为零,阻止点击操作
-				else {
-					time -= 1
-					$(".get_code").html(time + 's后重发')
-				}
-			},1000)
-		}},
-		// 如果失败
-		error: function () {
-			// 表示后端出现了错误，可以将错误信息展示到前端页面中
-			$("#register-sms-code-err").html(resp.errmsg);
-			$("#register-sms-code-err").show();
-			// 将点击按钮的onclick事件函数恢复回去
-			$(".get_code").attr("onclick", "sendSMSCode();");
-			// 如果错误码是4004，代表验证码错误，重新生成验证码
-			if (resp.errno == "4004") {
-				generateImageCode()
+
 			}
 		}
-	})
 
+
+	})
 
 
 }

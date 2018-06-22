@@ -6,6 +6,7 @@ class Config(object):
 	# DEBUG = True
 	SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:w92z12x14@127.0.0.1:3306/information"
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
+	SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 	REDIS_HOST = "127.0.0.1"
 	REDIS_PORT = 6379
 	SECRET_KEY = 'aa'
