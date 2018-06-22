@@ -2,7 +2,7 @@ import random
 import re
 from datetime import datetime
 
-from flask import request, json, jsonify, current_app, make_response, session
+from flask import request, json, jsonify, current_app, make_response, session, render_template
 from info import redis_store, db
 from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
 from info.libs.dysms_python.send_2_mes import send_2_mes
@@ -16,7 +16,10 @@ from info.utils.response_code import RET
 # Todo 登出的后端实现
 @passport_blu.route('/logout')
 def logout():
-	pass
+	session.pop('mobile')
+	session.pop('user_id')
+	session.pop('nick_name')
+	return render_template('news/index.html')
 
 
 
