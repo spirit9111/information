@@ -34,6 +34,7 @@ def create_app(config_name):
 	db.init_app(app)
 	global redis_store
 	redis_store = redis.StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
+	# Todo
 	# CSRFProtect(app)
 	Session(app)
 	from info.modules.index import index_blu

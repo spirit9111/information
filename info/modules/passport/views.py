@@ -1,6 +1,5 @@
 import random
 import re
-
 from flask import request, json, jsonify, current_app, make_response
 from info import redis_store
 from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
@@ -18,6 +17,7 @@ def get_image_code():
 	img_code_id = request.args.get('code_id')
 	# 2.生成验证码内容value(图片和真实数据)
 	name, text, image = captcha.generate_captcha()
+	current_app.logger.debug(text)
 	# 3.将uuid和真实数据保存到redis,并添加超时时间
 	redis_store.set(img_code_id, text, IMAGE_CODE_REDIS_EXPIRES)
 
@@ -29,13 +29,18 @@ def get_image_code():
 	return response
 
 
-@passport_blu.route('/sms_code', methods=['POST', 'GET'])
+@passport_blu.route('/sms_code', methods=['POST'])
 def send_sms_code():
-	return jsonify(errno=RET.OK, errmsg="发送成功")
+	"""发送短信验证功能"""
+	# 测试专用
+	# return jsonify(errno=RET.OK, errmsg="发送成功")
 	# 当点击发送短信时,获取前段发送的数据JSON格式,转换为字典进行操作
-	data_dict = json.loads(request.data)
+	# data_dict = json.loads(request.data)
+	data_dict = request.json
+	current_app.logger.debug(data_dict)
 	# 获取手机号/验证码/uuid,取出来是string
 	mobile = data_dict['mobile']
+	print(type(mobile))
 	image_code = data_dict['image_code']
 	image_code_id = data_dict['image_code_id']
 	# 判断手机号/验证码/uuid是否全部都有值,没有值则报错
@@ -43,11 +48,11 @@ def send_sms_code():
 		# RET.PARAMERR常量
 		return jsonify(errno=RET.PARAMERR, errmsg='参数错误,参数不完整')
 	# 如果验证手机号是否符合规范,不规范则报错
-	if re.match(r'^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$', mobile):
+	if not re.match(r'^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$', mobile):
 		return jsonify(errno=RET.PARAMERR, errmsg='手机号不符合规范')
 	# 手机号符合规范,尝试根据image_code_id 去redis获取real_image_code
 	try:
-		real_image_code = redis_store.get(image_code_id)
+		real_image_code = redis_store.get(image_code_id).decode()
 		if real_image_code:
 			redis_store.delete(image_code_id)
 	except Exception as e:
@@ -63,7 +68,8 @@ def send_sms_code():
 	result = random.randint(0, 999999)
 	code = '%06d' % result
 	current_app.logger.debug("短信验证码：%s" % code)
-	send_2_mes(mobile, code)
+	# print(mobile, code)
+	send_2_mes(int(mobile), int(code))
 
 	# 把手机号和验证码保存到redis
 	try:
