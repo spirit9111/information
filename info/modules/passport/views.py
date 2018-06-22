@@ -95,6 +95,7 @@ def register():
 		# 最后一次登录时间
 		user.last_login = datetime.now()
 		db.session.add(user)
+		db.session.commit()
 	except Exception as e:
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.DATAERR, errmsg='数据库写入失败')

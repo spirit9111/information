@@ -300,6 +300,16 @@ function sendSMSCode() {
 
 }
 
+function logout() {
+	$.ajax({
+		url: '/passport/logout',
+		type: 'get',
+		success: function (response) {
+			location.reload()
+		}
+	});
+}
+
 // 调用该函数模拟点击左侧按钮
 function fnChangeMenu(n) {
 	var $li = $('.option_list li');
