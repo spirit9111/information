@@ -30,10 +30,12 @@ def news_list():
 	try:
 		# 需要判断是否需要的是--最新数据
 		if cid == 1:
-			paginate_ob = News.query.order_by(News.update_time.desc()).paginate(page, per_page, False)
+			paginate_ob = News.query.order_by(News.create_time.desc()).paginate(page, per_page, False)
+		# 请求的不是最新栏目
 		else:
-			paginate_ob = News.query.filter(Category.id).order_by(News.update_time.desc()).paginate(page, per_page,
-																									False)
+			paginate_ob = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page,
+																												per_page,
+																												False)
 	except Exception as e:
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.DBERR, errmsg='数据库查询错误')
@@ -52,7 +54,7 @@ def news_list():
 		"total_page": total_page,
 		"paginate_dirt": paginate_dirt}
 	# 将数据返回给前端
-	return jsonify(errno=RET.OK, errmsg="OK", data=data)
+	return jsonify(errno=RET.OK, errmsg="刷新OK", data=data)
 
 
 @index_blu.route('/')
