@@ -1,8 +1,9 @@
-from flask import render_template, current_app, session, request
+from flask import render_template, current_app, session, request, g
 from flask import jsonify
 
 from info.constants import CLICK_RANK_MAX_NEWS, HOME_PAGE_MAX_NEWS
 from info.models import User, News, Category
+from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import index_blu
 
@@ -58,6 +59,7 @@ def news_list():
 
 
 @index_blu.route('/')
+@user_login_data
 def index():
 	# Todo 右侧点击排行
 
@@ -79,18 +81,18 @@ def index():
 	# 分类处理查询
 	for category in categories_ob_list:
 		categories_data.append(category.to_dict())
-
-	# 从session获取user_id或者电话/ 应该能获取到token
-	user_id = session.get('user_id', None)
-	# 如果没有设置,在直接访问时会报错
-	user = None
-	if user_id:
-		# 从mysql查询数据(头像/昵称)
-		try:
-			user = User.query.filter_by(id=user_id).first()
-		except Exception as e:
-			current_app.logger.debug(e)
-			return render_template('news/index.html')
+	user = g.user
+	# # 从session获取user_id或者电话/ 应该能获取到token
+	# user_id = session.get('user_id', None)
+	# # 如果没有设置,在直接访问时会报错
+	# user = None
+	# if user_id:
+	# 	# 从mysql查询数据(头像/昵称)
+	# 	try:
+	# 		user = User.query.filter_by(id=user_id).first()
+	# 	except Exception as e:
+	# 		current_app.logger.debug(e)
+	# 		return render_template('news/index.html')
 	data = {
 		"user": user.to_dict() if user else None,
 		"click_news_list": click_news_list,
