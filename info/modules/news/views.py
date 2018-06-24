@@ -7,16 +7,17 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-@news_blu.route('/news_collect')
+@news_blu.route('/news_collect', methods=['POST'])
 @user_login_data
 def news_collect():
-	pass
-	if not g.user:
+	user = g.user
+	current_app.logger.debug('user:%s' % type(user))
+	if not user:
 		return jsonify(errno=RET.SESSIONERR, errmsg="用户未登陆")
 
 	# 获取数据(news_id/action)
 	data_dict = request.json
-	news_id = data_dict.get("data_dict")
+	news_id = data_dict.get("news_id")
 	action = data_dict.get("action")
 	# 判断数据是否为空
 	if not all([news_id, action]):
@@ -38,17 +39,17 @@ def news_collect():
 	# 判断用户的操作方式('collect', 'cancel_collect')
 	if action == 'cancel_collect':
 		# 如果在收藏列表,可以取消收藏
-		if news_ob in g.user.collection_news:
+		if news_ob in user.collection_news:
 			try:
-				g.user.collection_news.remove(news)
+				user.collection_news.remove(news_ob)
 			except Exception as e:
 				current_app.logger.debug(e)
 				return jsonify(errno=RET.DBERR, errmsg="数据库异常")
-	elif action == 'cancel_collect':
-		if news not in g.user.collection_news:
+	elif action == 'collect':
+		if news_ob not in user.collection_news:
 			# 添加到用户的新闻收藏列表
 			try:
-				g.user.collection_news.append(news)
+				user.collection_news.append(news_ob)
 			except Exception as e:
 				current_app.logger.debug(e)
 				return jsonify(errno=RET.DBERR, errmsg="数据库异常")
