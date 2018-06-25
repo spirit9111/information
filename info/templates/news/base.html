@@ -7,16 +7,30 @@
 			{#标题#}
 		{% endblock %}
 	</title>
-	<link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
-	{% block cssBlock %}
+{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">#}
+{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">#}
+{#	<script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>#}
+{#	<script type="text/javascript" src="../../static/news/js/main.js"></script>#}
+{##}
+{#	{% block jsBlock %}#}
+{##}
+{#	{% endblock %}#}
 
-	{% endblock %}
-	<link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">
-	<script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>
-	<script type="text/javascript" src="../../static/news/js/main.js"></script>
-	{% block jsBlock %}
 
-	{% endblock %}
+    <link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
+
+    {% block cssBlock %}
+
+    {% endblock %}
+
+    <link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">
+    <script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="../../static/news/js/main.js"></script>
+
+    {% block jsBlock %}
+
+    {% endblock %}
+
 	{#	<script type="text/javascript" src="../../static/news/js/index.js"></script>#}
 </head>
 <body>
@@ -58,13 +72,17 @@
 	{% endblock %}
 
 	<div class="rank_con fr">
-	{% block authorBlock %}
-	
-	{% endblock %}
-		<div class="rank_title">
-			<h3>点击排行</h3>
-		</div>
+		{% block authorBlock %}
+
+		{% endblock %}
+
 		<ul class="rank_list">
+			{% block righttopBlock %}
+
+				<div class="rank_title">
+					<h3>点击排行</h3>
+				</div>
+			{% endblock %}
 			{% for news in data.click_news_list %}
 				<li><span class="{{ loop.index | do_index_class }}">{{ loop.index }}  </span><a
 						href="#">{{ news.title }}</a></li>
@@ -72,21 +90,24 @@
 		</ul>
 	</div>
 </div>
-<div class="footer">
-	<div class="footer_links">
-		<a href="">关于我们</a>
-		<span>|</span>
-		<a href="">联系我们</a>
-		<span>|</span>
-		<a href="">招聘人才</a>
-		<span>|</span>
-		<a href="">友情链接</a>
+{% block rightBlock %}
+
+	<div class="footer">
+		<div class="footer_links">
+			<a href="">关于我们</a>
+			<span>|</span>
+			<a href="">联系我们</a>
+			<span>|</span>
+			<a href="">招聘人才</a>
+			<span>|</span>
+			<a href="">友情链接</a>
+		</div>
+		<p class="copyright">
+			CopyRight © 2018 新经资讯信息技术有限公司 All Rights Reserved<br/>
+			电话：010-****888 京ICP备*******8号
+		</p>
 	</div>
-	<p class="copyright">
-		CopyRight © 2018 新经资讯信息技术有限公司 All Rights Reserved<br/>
-		电话：010-****888 京ICP备*******8号
-	</p>
-</div>
+{% endblock %}
 
 <!-- 登录表单 -->
 <form class="login_form_con">
