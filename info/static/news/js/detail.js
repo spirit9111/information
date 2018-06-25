@@ -186,13 +186,16 @@ $(function () {
 						} else {
 							like_count = parseInt(like_count) - 1
 							$this.removeClass('has_comment_up')
+
 						}
+
 						// 更新点赞数据
 						$this.attr('data-likecount', like_count)
 						if (like_count == 0) {
 							$this.html("赞")
 						} else {
 							$this.html(like_count)
+							location.reload()
 						}
 					} else if (resp.errno == "4101") {
 						$('.login_form_con').show();

@@ -48,6 +48,7 @@ def comment_like():
 			try:
 				db.session.delete(comment_like_mo)
 				comment_mo.like_count -= 1
+				db.session.commit()
 			except Exception as e:
 				current_app.logger.debug(e)
 				return jsonify(errno=RET.DBERR, errmsg="数据库异常")
@@ -57,9 +58,9 @@ def comment_like():
 												   CommentLike.user_id == user.id).first()
 		if not comment_like_mo:
 			comment_like_mo = CommentLike()
+			comment_mo.like_count += 1
 			comment_like_mo.user_id = user.id
 			comment_like_mo.comment_id = comment_id
-			comment_mo.like_count += 1
 			try:
 				db.session.add(comment_like_mo)
 				db.session.commit()
