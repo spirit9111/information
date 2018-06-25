@@ -38,8 +38,7 @@ def comment_like():
 
 	if not comment_mo:
 		return jsonify(errno=RET.NODATA, errmsg="评论不存在")
-	# 默认没有点赞
-	# is_comment_like = False
+
 	# 判断action
 	if action == 'remove':
 		# 如果在已经点赞,可以取消点赞
@@ -48,6 +47,7 @@ def comment_like():
 		if comment_like_mo:
 			try:
 				db.session.delete(comment_like_mo)
+				comment_mo.like_count -= 1
 			except Exception as e:
 				current_app.logger.debug(e)
 				return jsonify(errno=RET.DBERR, errmsg="数据库异常")
@@ -59,6 +59,7 @@ def comment_like():
 			comment_like_mo = CommentLike()
 			comment_like_mo.user_id = user.id
 			comment_like_mo.comment_id = comment_id
+			comment_mo.like_count += 1
 			try:
 				db.session.add(comment_like_mo)
 				db.session.commit()
@@ -67,9 +68,6 @@ def comment_like():
 				return jsonify(errno=RET.DBERR, errmsg="数据库异常")
 	else:
 		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
-	# data={
-	# 	"is_comment_like":is_comment_like
-	# }
 
 	return jsonify(errno=RET.OK, errmsg="点赞成功")
 
@@ -223,7 +221,7 @@ def news(news_id):
 	# 获取用户是谁user 新闻是哪个news_id
 	# 默认没有收藏
 	is_collected = False
-	# 获取用户所有的新闻收藏表，判断news在不在里面
+	# 获取用户所有的新闻收藏表，判断news在不在里面再去查询
 	news_id_list = []
 	if user:
 		for news_ob2 in user.collection_news.all():
@@ -232,15 +230,39 @@ def news(news_id):
 	if news_id in news_id_list:
 		is_collected = True
 
+	# Todo 显示点赞的状态
+	# 查询出已经点赞的评论全部id,登录状态下
+	comment_like_id_list = []
+	if user:
+		try:
+			# 1.查询出当前news的所有评论的id
+			comment_mo_list = Comment.query.filter(Comment.news_id == news_id).all()
+			comment_id_list = [i.id for i in comment_mo_list]
+			# 2.筛选出当前用户点赞的评论
+			comment_like_mo_list = CommentLike.query.filter(CommentLike.comment_id.in_(comment_id_list),
+															CommentLike.user_id == user.id).all()
+			comment_like_id_list = [i.comment_id for i in comment_like_mo_list]
+		except Exception as e:
+			current_app.logger.debug(e)
+			return jsonify(errno=RET.DBERR, errmsg="数据查询错误")
+
 	# 尝试查询评论数据
 	comment_ob_list = []
 	try:
 		comment_ob_list = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc())
 	except Exception as e:
 		current_app.logger.debug(e)
+
 	comment_data_dict = []
 	for comment_ob in comment_ob_list:
-		comment_data_dict.append(comment_ob.to_dict())
+		comment_dict = comment_ob.to_dict()
+		# 给每一个评论新增新的属性is_like,表示该评论是否被点赞
+		comment_dict["is_like"] = False
+		# 如果评论的id 在 当前用户当前新闻的 id列表中,则修改is_like为True,表示已经点赞
+		if comment_ob.id in comment_like_id_list:
+			comment_dict["is_like"] = True
+
+		comment_data_dict.append(comment_dict)
 
 	data = {
 		"user": user.to_dict() if user else None,
