@@ -2,16 +2,41 @@ from flask import render_template, redirect, g, request, jsonify, current_app
 from info import db
 from info.constants import QINIU_DOMIN_PREFIX
 from info.libs.upload_pic import upload_pic
+from info.models import User
 from info.modules.profile import profile_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
+# Todo 关注
+
 # Todo 新闻列表
 # Todo 发布
 # Todo 收藏
+
+
 # Todo 密码
-# Todo 关注
+@profile_blu.route('/re_pwd', methods=['POST', 'GET'])
+@user_login_data
+def re_pwd():
+	if request.method == 'GET':
+		return render_template('news/user_pass_info.html')
+	# 获取oldpwd/newpwd
+	old_password = request.json.get('old_password')
+	new_password = request.json.get('new_password')
+	# 判空
+	if not all([old_password, new_password]):
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+	if old_password == new_password:
+		return jsonify(errno=RET.PWDERR, errmsg="新旧密码不能相同")
+
+	user = g.user
+	# 验证旧密码是否正确
+	if not user.check_password(old_password):
+		return jsonify(errno=RET.PWDERR, errmsg="旧密码输入错误")
+	user.password = new_password
+	return jsonify(errno=RET.OK, errmsg="密码修改成功")
+
 
 # Todo 头像
 @profile_blu.route('/pic_info', methods=['POST', 'GET'])
@@ -19,7 +44,8 @@ from info.utils.response_code import RET
 def pic_info():
 	user = g.user
 	if request.method == 'GET':
-		return render_template('news/user_pic_info.html')
+		# to_dict()中的avatar已经加上了域名前缀
+		return render_template('news/user_pic_info.html', data={"user": user.to_dict()})
 	# 获取头像,二进制文件
 	pic_file = request.files.get('avatar')
 	# 判空
