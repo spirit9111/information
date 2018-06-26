@@ -1,8 +1,8 @@
-from flask import render_template, redirect, g, request, jsonify, current_app
+from flask import render_template, redirect, g, request, jsonify, current_app, url_for
 from info import db
 from info.constants import QINIU_DOMIN_PREFIX
 from info.libs.upload_pic import upload_pic
-from info.models import User
+from info.models import User, News, Category
 from info.modules.profile import profile_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
@@ -11,7 +11,66 @@ from info.utils.response_code import RET
 # Todo 关注
 
 # Todo 新闻列表
-# Todo 发布
+@profile_blu.route('/news_list')
+@user_login_data
+def news_list():
+	return render_template('news/user_news_list.html')
+
+
+# Todo 新闻发布
+@profile_blu.route('/publish', methods=['POST', 'GET'])
+@user_login_data
+def publish():
+	if request.method == 'GET':
+		categories_mo_list = Category.query.filter(Category.id != 1).all()
+		categories = []
+		for i in categories_mo_list:
+			categories.append(i.to_dict())
+
+		data = {
+			"categories": categories
+		}
+		return render_template('news/user_news_release.html', data=data)
+	# 获取参数
+	user = g.user
+	title = request.form.get('title')
+	source = '个人发布'
+	category_id = request.form.get('category_id')
+	digest = request.form.get('digest')
+	index_image = request.files.get("index_image").read()
+	content = request.form.get("content")
+	# # 判空
+	if not all([title, category_id, digest, index_image, content]):
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+	try:
+		title = int(title)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+	# 上传图片
+	try:
+		key = upload_pic(index_image)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.THIRDERR, errmsg="图片上传失败")
+	# 保存数据
+	news = News()
+	news.title = title
+	news.category_id = category_id
+	news.digest = digest
+	news.index_image_url = key
+	news.content = content
+	news.source = source
+	news.user_id = user.id
+	news.status = 1
+	try:
+		db.session.add(news)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据库保存失败")
+	# return jsonify(errno=RET.OK, errmsg="等待审核!")
+	return redirect(url_for('profile.news_list'))
 
 
 # Todo 收藏
