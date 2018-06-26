@@ -12,7 +12,42 @@ from info.utils.response_code import RET
 
 # Todo 新闻列表
 # Todo 发布
+
+
 # Todo 收藏
+@profile_blu.route('/collection')
+@user_login_data
+def collection():
+	user = g.user
+	# 获取当前页,默认1
+	page = request.args.get('p', 1)
+	# 教研参数
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+	# p = 1
+	news_mo_list = []
+	current_page = 1
+	total_page = 1
+	try:
+		paginate_mo = user.collection_news.paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		news_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+
+	data_list = []
+	for i in news_mo_list:
+		data_list.append(i.to_dict())
+
+	data = {
+		"collection": data_list,
+		"current_page": current_page,
+		"total_page": total_page,
+	}
+	return render_template('news/user_collection.html', data=data)
 
 
 # Todo 密码
