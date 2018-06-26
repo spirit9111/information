@@ -217,7 +217,6 @@ def news(news_id):
 		return jsonify(errno=RET.DATAEXIST, errmsg="数据不存在")
 	news_ob.clicks += 1
 	news_data_dict = news_ob.to_dict()
-
 	# Todo 收藏功能
 	# 获取用户是谁user 新闻是哪个news_id
 	# 默认没有收藏
