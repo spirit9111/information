@@ -5,10 +5,22 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
+# Todo 新闻列表
+# Todo 发布
+# Todo 收藏
+# Todo 密码
+# Todo 关注
+# Todo 头像
+@profile_blu.route('/pic_info', methods=['POST'])
+def pic_info():
+	pass
+
+
 # Todo 基本资料
 @profile_blu.route('/base_info', methods=['POST', 'GET'])
 @user_login_data
 def base_info():
+	"""基本资料"""
 	# user = g.user
 	if request.method == 'GET':
 		return render_template('news/user_base_info.html', data={"user": g.user.to_dict()})
