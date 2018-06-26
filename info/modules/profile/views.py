@@ -1,5 +1,7 @@
 from flask import render_template, redirect, g, request, jsonify, current_app
 from info import db
+from info.constants import QINIU_DOMIN_PREFIX
+from info.libs.upload_pic import upload_pic
 from info.modules.profile import profile_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
@@ -10,10 +12,37 @@ from info.utils.response_code import RET
 # Todo 收藏
 # Todo 密码
 # Todo 关注
+
 # Todo 头像
-@profile_blu.route('/pic_info', methods=['POST'])
+@profile_blu.route('/pic_info', methods=['POST', 'GET'])
+@user_login_data
 def pic_info():
-	pass
+	user = g.user
+	if request.method == 'GET':
+		return render_template('news/user_pic_info.html')
+	# 获取头像,二进制文件
+	pic_file = request.files.get('avatar')
+	# 判空
+	if not pic_file:
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+	try:
+		pic_file_2 = pic_file.read()
+		# 调用第三方上传头像,获取key
+		key = upload_pic(pic_file_2)
+		# 将key保存到mysql
+		user.avatar_url = key
+		db.session.commit()
+	except Exception as e:
+		db.session.rollback()
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据保存失败")
+
+	# 将url数据返回给前端
+	data = {
+		"avatar_url": QINIU_DOMIN_PREFIX + user.avatar_url
+	}
+	return jsonify(errno=RET.OK, errmsg="OK", data=data)
 
 
 # Todo 基本资料

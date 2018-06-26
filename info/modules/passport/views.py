@@ -2,10 +2,9 @@ import random
 import re
 from datetime import datetime
 
-from flask import request, json, jsonify, current_app, make_response, session, render_template, redirect, url_for
+from flask import request, jsonify, current_app, make_response, session, redirect, url_for
 from info import redis_store, db
 from info.constants import IMAGE_CODE_REDIS_EXPIRES, SMS_CODE_REDIS_EXPIRES
-from info.libs.dysms_python.send_2_mes import send_2_mes
 from info.models import User
 from info.modules.passport import passport_blu
 
