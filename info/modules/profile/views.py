@@ -14,7 +14,36 @@ from info.utils.response_code import RET
 @profile_blu.route('/news_list')
 @user_login_data
 def news_list():
-	return render_template('news/user_news_list.html')
+	page = request.args.get('p', 1)
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+
+	user = g.user
+	news_mo_list = []
+	current_page = 1
+	total_page = 1
+	try:
+		paginate_mo = News.query.filter(News.user_id == user.id).paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		news_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+	# return jsonify(errno=RET.DBERR, errmsg="数据库错误")
+
+	data_list = []
+	for i in news_mo_list:
+		data_list.append(i.to_review_dict())
+
+	data = {
+		"current_page": current_page,
+		"total_page": total_page,
+		"collection": data_list,
+	}
+
+	return render_template('news/user_news_list.html', data=data)
 
 
 # Todo 新闻发布
@@ -33,12 +62,12 @@ def publish():
 		return render_template('news/user_news_release.html', data=data)
 	# 获取参数
 	user = g.user
+	content = request.form.get("content")
 	title = request.form.get('title')
 	source = '个人发布'
 	category_id = request.form.get('category_id')
 	digest = request.form.get('digest')
 	index_image = request.files.get("index_image").read()
-	content = request.form.get("content")
 	# # 判空
 	if not all([title, category_id, digest, index_image, content]):
 		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
@@ -59,7 +88,7 @@ def publish():
 	news.title = title
 	news.category_id = category_id
 	news.digest = digest
-	news.index_image_url = key
+	news.index_image_url = QINIU_DOMIN_PREFIX + key
 	news.content = content
 	news.source = source
 	news.user_id = user.id
@@ -69,8 +98,10 @@ def publish():
 	except Exception as e:
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.DBERR, errmsg="数据库保存失败")
-	# return jsonify(errno=RET.OK, errmsg="等待审核!")
-	return redirect(url_for('profile.news_list'))
+	return jsonify(errno=RET.OK, errmsg="等待审核!")
+
+
+# return redirect(url_for('profile.news_list'))
 
 
 # Todo 收藏

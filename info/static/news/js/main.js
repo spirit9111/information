@@ -137,7 +137,7 @@ $(function () {
 				}
 				else {
 					alert(response.errmsg)
-					$("#login-password-err").html(resp.errmsg)
+					$("#login-password-err").html(response.errmsg)
 					$("#login-password-err").show()
 				}
 			}

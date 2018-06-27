@@ -31,12 +31,15 @@ def news_list():
 	try:
 		# 需要判断是否需要的是--最新数据
 		if cid == 1:
-			paginate_ob = News.query.order_by(News.create_time.desc()).paginate(page, per_page, False)
+			# paginate_ob = News.query.order_by(News.create_time.desc()).paginate(page, per_page, False)
+			paginate_ob = News.query.filter(News.status == 0).order_by(News.create_time.desc()).paginate(page, per_page,
+																										 False)
 		# 请求的不是最新栏目
 		else:
-			paginate_ob = News.query.filter(News.category_id == cid).order_by(News.create_time.desc()).paginate(page,
-																												per_page,
-																												False)
+			paginate_ob = News.query.filter(News.category_id == cid, News.status == 0).order_by(
+				News.create_time.desc()).paginate(page,
+												  per_page,
+												  False)
 	except Exception as e:
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.DBERR, errmsg='数据库查询错误')
