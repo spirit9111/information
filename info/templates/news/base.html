@@ -7,29 +7,29 @@
 			{#标题#}
 		{% endblock %}
 	</title>
-{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">#}
-{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">#}
-{#	<script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>#}
-{#	<script type="text/javascript" src="../../static/news/js/main.js"></script>#}
-{##}
-{#	{% block jsBlock %}#}
-{##}
-{#	{% endblock %}#}
+	{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">#}
+	{#	<link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">#}
+	{#	<script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>#}
+	{#	<script type="text/javascript" src="../../static/news/js/main.js"></script>#}
+	{##}
+	{#	{% block jsBlock %}#}
+	{##}
+	{#	{% endblock %}#}
 
 
-    <link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
+	<link rel="stylesheet" type="text/css" href="../../static/news/css/reset.css">
 
-    {% block cssBlock %}
+	{% block cssBlock %}
 
-    {% endblock %}
+	{% endblock %}
 
-    <link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">
-    <script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>
-    <script type="text/javascript" src="../../static/news/js/main.js"></script>
+	<link rel="stylesheet" type="text/css" href="../../static/news/css/main.css">
+	<script type="text/javascript" src="../../static/news/js/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="../../static/news/js/main.js"></script>
 
-    {% block jsBlock %}
+	{% block jsBlock %}
 
-    {% endblock %}
+	{% endblock %}
 
 	{#	<script type="text/javascript" src="../../static/news/js/index.js"></script>#}
 </head>
@@ -54,7 +54,7 @@
 				<img src=
 							 {% if data.user.avatar_url %}{{ data.user.avatar_url }}{% else %}"../../static/news/images/person01.png"{% endif %}
 					 class="lgin_pic">
-				<a href="{{ url_for('profile.user_info') }}"  id="nick_name">{{ data.user.nick_name }}</a>
+				<a href="{{ url_for('profile.user_info') }}" id="nick_name">{{ data.user.nick_name }}</a>
 				<a href="javascript:;" onclick="logout()">退出</a>
 			</div>
 		{% else %}
@@ -83,14 +83,16 @@
 					<h3>点击排行</h3>
 				</div>
 			{% endblock %}
-			{% for news in data.click_news_list %}
-				<li><span class="{{ loop.index | do_index_class }}">{{ loop.index }}  </span><a
-						href="#">{{ news.title }}</a></li>
-			{% endfor %}
+			{% block rightBlock %}
+				{% for news in data.click_news_list %}
+					<li><span class="{{ loop.index | do_index_class }}">{{ loop.index }}  </span><a
+							href="#">{{ news.title }}</a></li>
+				{% endfor %}
+			{% endblock %}
 		</ul>
 	</div>
 </div>
-{% block rightBlock %}
+{% block footBlock %}
 
 	<div class="footer">
 		<div class="footer_links">

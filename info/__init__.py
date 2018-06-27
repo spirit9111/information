@@ -1,7 +1,7 @@
 from urllib import response
 
 import redis
-from flask import Flask
+from flask import Flask, render_template, g
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
@@ -53,6 +53,15 @@ def create_app(config_name):
 		csrf_token = generate_csrf()
 		response.set_cookie('csrf_token', csrf_token)
 		return response
+
+	from info.utils.common import user_login_data
+
+	@app.errorhandler(404)
+	@user_login_data
+	def page_not_found(_):
+		user = g.user
+		data = {"user": user.to_dict() if user else None}
+		return render_template('news/404.html', data=data)
 
 	from info.modules.index import index_blu
 	app.register_blueprint(index_blu)
