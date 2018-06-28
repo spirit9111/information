@@ -4,12 +4,59 @@ from flask import render_template, request, redirect, current_app, url_for, sess
 from info.models import User, News
 from info.modules.admin import admin_blu
 from info.utils.common import user_login_data
+from info.utils.response_code import RET
 
 
-@admin_blu.route('/news_rev_detail')
-def news_rev_detail():
+@admin_blu.route('/check_news',methods=['POST'])
+def check_news():
+	"""审核详细"""
+	news_id = request.json.get('news_id')
+	action = request.json.get('action')
+
+	if not all([news_id, action]):
+		return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+	if action not in ["accept", "reject"]:
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+	# 查询到指定的新闻数据
+	try:
+		news = News.query.get(news_id)
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据库异常")
+
+	if not news:
+		return jsonify(errno=RET.NODATA, errmsg="未查询到数据")
+	# 审核不通过
+	if action == 'reject':
+		reason = request.json.get('reason')
+		if not reason:
+			return jsonify(errno=RET.PARAMERR, errmsg="请输入拒绝原因")
+		news.status = -1
+		news.reason = reason
+	else:
+		news.status = 0
+	return jsonify(errno=RET.OK, errmsg="审核通过")
+
+
+@admin_blu.route('/news_rev_detail/<int:news_id>')
+def news_rev_detail(news_id):
 	"""审核界面"""
-	pass
+	if not news_id:
+		return render_template('admin/news_review_detail.html', data={"errmsg": "参数错误"})
+
+	try:
+		news_mo = News.query.filter(News.id == news_id).first()
+	except Exception as e:
+		current_app.logger.debug(e)
+		return render_template('admin/news_review_detail.html', data={"errmsg": "未查询到此新闻"})
+
+	data = {
+		'news': news_mo.to_dict()
+	}
+
+	return render_template('admin/news_review_detail.html', data=data)
 
 
 @admin_blu.route('/news_rev')
