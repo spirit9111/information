@@ -1,10 +1,42 @@
 import time
 from datetime import datetime, timedelta
 
-from flask import render_template, request, redirect, current_app, url_for, session, g
+from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify
 from info.models import User
 from info.modules.admin import admin_blu
 from info.utils.common import user_login_data
+
+
+@admin_blu.route('/user_list')
+def user_list():
+	page = request.args.get('page', 1)
+
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+	user_mo_list = []
+	current_page = 1
+	total_page = 1
+	try:
+		paginate_mo = User.query.filter(User.is_admin == 0).paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		user_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+
+	user_data_list = []
+	for user in user_mo_list:
+		user_data_list.append(user.to_admin_dict())
+
+	data = {
+		"user_data_list": user_data_list,
+		"current_page": current_page,
+		"total_page": total_page
+	}
+	# return render_template('admin/user_list.html')
+	return render_template('admin/user_list.html', data=data)
 
 
 @admin_blu.route('/user_count', methods=['GET'])
@@ -54,7 +86,7 @@ def user_count():
 
 		everyday_list.append(everyday_end.strftime('%m-%d'))
 
-		# 翻转
+	# 翻转
 	everyday_count_list.reverse()
 	everyday_list.reverse()
 	data = {
