@@ -3,3 +3,4 @@
 logs/log*
 migrations
 .qiniu*
+.add_test_user

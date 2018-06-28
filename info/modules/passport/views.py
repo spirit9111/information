@@ -18,6 +18,7 @@ def logout():
 	session.pop('mobile')
 	session.pop('user_id')
 	session.pop('nick_name')
+	session.pop('is_admin')
 	return redirect(url_for('index.index'))
 
 
