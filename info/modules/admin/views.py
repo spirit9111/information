@@ -1,15 +1,61 @@
 import time
 from datetime import datetime, timedelta
-
 from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify
-from info.models import User
+from info.models import User, News
 from info.modules.admin import admin_blu
 from info.utils.common import user_login_data
 
 
+@admin_blu.route('/news_rev_detail')
+def news_rev_detail():
+	"""审核界面"""
+	pass
+
+
+@admin_blu.route('/news_rev')
+def news_rev():
+	"""新闻审核主页"""
+
+	# 筛选出所有没有通过审核的新闻
+	page = request.args.get('p', 1)
+	keywords = request.args.get('keywords', None)
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+	news_mo_list = []
+	current_page = 1
+	total_page = 1
+
+	# 搜索功能实现
+	filter_list = [News.status != 0]
+	if keywords:
+		filter_list.append(News.title.contains(keywords))
+	try:
+		paginate_mo = News.query.filter(*filter_list).order_by(News.create_time).paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		news_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+
+	news_data_list = []
+	for news in news_mo_list:
+		news_data_list.append(news.to_review_dict())
+
+	data = {
+		"news_data_list": news_data_list,
+		"current_page": current_page,
+		"total_page": total_page
+	}
+
+	return render_template('admin/news_review.html', data=data)
+
+
 @admin_blu.route('/user_list')
 def user_list():
-	page = request.args.get('page', 1)
+	"""用户列表"""
+	page = request.args.get('p', 1)
 
 	try:
 		page = int(page)
