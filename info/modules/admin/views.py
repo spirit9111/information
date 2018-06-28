@@ -1,13 +1,121 @@
 import time
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify
-from info.models import User, News
+from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify, abort
+from info.models import User, News, Category
 from info.modules.admin import admin_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-@admin_blu.route('/check_news',methods=['POST'])
+@admin_blu.route('/news_edit_detail')
+def news_edit_detail():
+	"""板式详细"""
+
+	if request.method == "GET":
+		news_id = request.args.get("news_id")
+
+		if not news_id:
+			abort(404)
+
+		try:
+			news_id = int(news_id)
+		except Exception as e:
+			current_app.logger.error(e)
+			return render_template('admin/news_edit_detail.html', errmsg="参数错误")
+
+		try:
+			news = News.query.get(news_id)
+		except Exception as e:
+			current_app.logger.error(e)
+			return render_template('admin/news_edit_detail.html', errmsg="查询数据错误")
+
+		if not news:
+			return render_template('admin/news_edit_detail.html', errmsg="未查询到数据")
+
+		# 查询分类数据
+		try:
+			category_mo_list = Category.query.filter(Category.id != 0).all()
+		except Exception as e:
+			current_app.logger.error(e)
+			return render_template('admin/news_edit_detail.html', errmsg="查询数据错误")
+
+		category_data_list = []
+		for category in category_mo_list:
+			# 取到分类的字典
+			cate_dict = category.to_dict()
+			# 判断当前遍历到的分类是否是当前新闻的分类，如果是，则添加is_selected为true
+			if category.id == news.category_id:
+				cate_dict["is_selected"] = True
+			category_data_list.append(cate_dict)
+
+		data = {
+			"news": news.to_dict(),
+			"categories": category_data_list
+		}
+
+		return render_template('admin/news_edit_detail.html', data=data)
+
+	news_id = request.json.get('news_id')
+	action = request.json.get('action')
+
+	if not all([news_id, action]):
+		return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+	try:
+		news = News.query.get(news_id)
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据库异常")
+
+	if not news:
+		return jsonify(errno=RET.NODATA, errmsg="未查询到数据")
+
+	data = {
+
+	}
+	return render_template('admin/news_edit_detail.html', data=data)
+
+
+@admin_blu.route('/news_edit')
+def news_edit():
+	"""板式编辑首页"""
+	page = request.args.get('news_id', 1)
+	keywords = request.args.get('keywords', None)
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+
+	news_mo_list = []
+	current_page = 1
+	total_page = 1
+
+	# 搜索功能实现
+	filter_list = [News.status != 0]
+	if keywords:
+		filter_list.append(News.title.contains(keywords))
+	try:
+		paginate_mo = News.query.filter(*filter_list).order_by(News.create_time).paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		news_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+
+	news_data_list = []
+	for news in news_mo_list:
+		news_data_list.append(news.to_dict())
+
+	data = {
+		"news_data_list": news_data_list,
+		"current_page": current_page,
+		"total_page": total_page
+	}
+
+	return render_template('admin/news_edit.html', data=data)
+
+
+@admin_blu.route('/check_news', methods=['POST'])
 def check_news():
 	"""审核详细"""
 	news_id = request.json.get('news_id')
@@ -15,6 +123,12 @@ def check_news():
 
 	if not all([news_id, action]):
 		return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
+
+	try:
+		news_id = int(news_id)
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 
 	if action not in ["accept", "reject"]:
 		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
