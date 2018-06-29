@@ -2,6 +2,7 @@ import time
 from datetime import datetime, timedelta
 from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify, abort
 
+from info import db
 from info.constants import QINIU_DOMIN_PREFIX
 from info.libs.upload_pic import upload_pic
 from info.models import User, News, Category
@@ -10,11 +11,46 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-# # TODO post提交
-# @admin_blu.route('/news_edit_detail')
-# def news_edit_detail():
-# 	"""编辑提交"""
-# 	pass
+# # TODO 新闻分类
+@admin_blu.route('/news_type', methods=['POST', 'GET'])
+def news_type():
+	"""新闻分类"""
+	if request.method == 'GET':
+		try:
+			category_mo_list = Category.query.filter(Category.id != 1).all()
+		except Exception as e:
+			current_app.logger.debug(e)
+			return render_template('admin/news_type.html', errmsg="数据库查询失败")
+		category_data_list = []
+		for i in category_mo_list:
+			category_data_list.append(i.to_dict())
+		data = {
+			"category_data_list": category_data_list
+		}
+		return render_template('admin/news_type.html', data=data)
+	# 新增分类/修改原有分类名
+	cname = request.json.get("name")
+	cid = request.json.get("id", None)
+	if not cname:
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+	# 如果接收到了cid表示修改
+	if cid:
+		try:
+			cid = int(cid)
+			category = Category.query.get(cid)
+		except Exception as e:
+			current_app.logger.error(e)
+			return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+		if not category:
+			return jsonify(errno=RET.NODATA, errmsg="未查询到分类数据")
+		category.name = cname
+	else:
+		category = Category()
+		category.name = cname
+		db.session.add(category)
+
+	return jsonify(errno=RET.OK, errmsg="OK")
 
 
 @admin_blu.route('/news_edit_detail', methods=['POST', 'GET'])
