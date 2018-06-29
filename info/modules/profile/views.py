@@ -72,7 +72,7 @@ def publish():
 	if not all([title, category_id, digest, index_image, content]):
 		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
 	try:
-		title = int(title)
+		category_id = int(category_id)
 	except Exception as e:
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")

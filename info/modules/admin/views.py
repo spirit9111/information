@@ -1,66 +1,72 @@
 import time
 from datetime import datetime, timedelta
 from flask import render_template, request, redirect, current_app, url_for, session, g, jsonify, abort
+
+from info.constants import QINIU_DOMIN_PREFIX
+from info.libs.upload_pic import upload_pic
 from info.models import User, News, Category
 from info.modules.admin import admin_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-@admin_blu.route('/news_edit_detail')
+# # TODO post提交
+# @admin_blu.route('/news_edit_detail')
+# def news_edit_detail():
+# 	"""编辑提交"""
+# 	pass
+
+
+@admin_blu.route('/news_edit_detail', methods=['POST', 'GET'])
 def news_edit_detail():
-	"""板式详细"""
+	"""编辑详细/提交"""
 
 	if request.method == "GET":
 		news_id = request.args.get("news_id")
-
 		if not news_id:
 			abort(404)
-
 		try:
 			news_id = int(news_id)
 		except Exception as e:
 			current_app.logger.error(e)
 			return render_template('admin/news_edit_detail.html', errmsg="参数错误")
-
 		try:
 			news = News.query.get(news_id)
 		except Exception as e:
 			current_app.logger.error(e)
 			return render_template('admin/news_edit_detail.html', errmsg="查询数据错误")
-
 		if not news:
 			return render_template('admin/news_edit_detail.html', errmsg="未查询到数据")
-
 		# 查询分类数据
 		try:
 			category_mo_list = Category.query.filter(Category.id != 0).all()
 		except Exception as e:
 			current_app.logger.error(e)
 			return render_template('admin/news_edit_detail.html', errmsg="查询数据错误")
-
 		category_data_list = []
 		for category in category_mo_list:
 			# 取到分类的字典
 			cate_dict = category.to_dict()
-			# 判断当前遍历到的分类是否是当前新闻的分类，如果是，则添加is_selected为true
+			# 设置而外属性表示是否需要加载时选中
 			if category.id == news.category_id:
 				cate_dict["is_selected"] = True
 			category_data_list.append(cate_dict)
-
 		data = {
 			"news": news.to_dict(),
 			"categories": category_data_list
 		}
 
 		return render_template('admin/news_edit_detail.html', data=data)
-
-	news_id = request.json.get('news_id')
-	action = request.json.get('action')
-
-	if not all([news_id, action]):
-		return jsonify(errno=RET.PARAMERR, errmsg="参数不足")
-
+	# post进入这里
+	news_id = request.form.get("news_id")
+	title = request.form.get("title")
+	digest = request.form.get("digest")
+	content = request.form.get("content")
+	index_image = request.files.get("index_image")
+	category_id = request.form.get("category_id")
+	# 判空
+	if not all([title, digest, content, category_id]):
+		return jsonify(errno=RET.PARAMERR, errmsg="参数有误")
 	try:
 		news = News.query.get(news_id)
 	except Exception as e:
@@ -68,17 +74,34 @@ def news_edit_detail():
 		return jsonify(errno=RET.DBERR, errmsg="数据库异常")
 
 	if not news:
-		return jsonify(errno=RET.NODATA, errmsg="未查询到数据")
+		return jsonify(errno=RET.NODATA, errmsg="数据不存在")
 
-	data = {
+	if index_image:
+		try:
+			index_image = index_image.read()
+		except Exception as e:
+			current_app.logger.debug(e)
+			return jsonify(errno=RET.PARAMERR, errmsg="参数有误")
 
-	}
-	return render_template('admin/news_edit_detail.html', data=data)
+	# 上传
+	try:
+		key = upload_pic(index_image)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.THIRDERR, errmsg="上传图片错误")
+	# 保存到mysql
+	news.index_image_url = QINIU_DOMIN_PREFIX + key
+	news.title = title
+	news.digest = digest
+	news.content = content
+	news.category_id = category_id
+
+	return jsonify(errno=RET.OK, errmsg="OK")
 
 
 @admin_blu.route('/news_edit')
 def news_edit():
-	"""板式编辑首页"""
+	"""编辑首页"""
 	page = request.args.get('news_id', 1)
 	keywords = request.args.get('keywords', None)
 	try:

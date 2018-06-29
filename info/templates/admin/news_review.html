@@ -31,15 +31,21 @@
 				<td>{{ news.id }}</td>
 				<td class="tleft">{{ news.title }}</td>
 				<td>{{ news.create_time }}</td>
-				<td>{% if news.status == 0 %}
-					已通过
-				{% elif news.status == -1 %}
-					未通过
-				{% else %}
-					未审核
-				{% endif %}</td>
 				<td>
+					{% if news.status == 0 %}
+						已通过
+					{% elif news.status == -1 %}
+						未通过
+					{% else %}
+						未审核
+					{% endif %}
+				</td>
+				<td>
+				{% if news.status == 1 %}
 					<a href="{{ url_for("admin.news_rev_detail", news_id=news.id) }}" class="review">审核</a>
+				{% else %}
+					<a href="{{ url_for('admin.news_edit_detail') }}?news_id={{ news.id }}" class="edit">编辑</a>
+				{% endif %}
 				</td>
 			</tr>
 		{% endfor %}
