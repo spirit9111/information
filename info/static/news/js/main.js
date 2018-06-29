@@ -98,7 +98,6 @@ $(function () {
 		$(this).find('a')[0].click()
 	})
 
-	// TODO 登录表单提交
 	$(".login_form_con").submit(function (e) {
 		e.preventDefault()
 		var mobile = $(".login_form #mobile").val()
@@ -148,7 +147,6 @@ $(function () {
 	})
 
 
-	// TODO 注册按钮点击
 	$(".register_form_con").submit(function (e) {
 		// 阻止默认提交操作
 		e.preventDefault()
@@ -213,7 +211,6 @@ $(function () {
 
 var imageCodeId = ""
 
-// TODO 生成一个图片验证码的编号，并设置页面中图片验证码img标签的src属性
 function generateImageCode() {
 	//生成uuid发送给服务器
 	imageCodeId = generateUUID()

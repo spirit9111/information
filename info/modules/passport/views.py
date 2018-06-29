@@ -12,9 +12,9 @@ from info.utils.captcha.captcha import captcha
 from info.utils.response_code import RET
 
 
-# Todo 登出的后端实现
 @passport_blu.route('/logout')
 def logout():
+	"""登出"""
 	session.pop('mobile')
 	session.pop('user_id')
 	session.pop('nick_name')

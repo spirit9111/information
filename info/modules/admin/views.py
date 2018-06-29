@@ -11,7 +11,7 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-# # TODO 新闻分类
+
 @admin_blu.route('/news_type', methods=['POST', 'GET'])
 def news_type():
 	"""新闻分类"""

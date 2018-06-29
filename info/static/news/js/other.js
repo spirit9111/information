@@ -12,18 +12,15 @@ $(function(){
     // 页面加载完毕，获取新闻列表
     getNewsList(1)
 
-    // TODO 关注当前作者
     $(".focus").click(function () {
 
     })
 
-    // TODO 取消关注当前作者
     $(".focused").click(function () {
 
     })
 })
 
-// TODO 获取新闻列表
 function getNewsList(page) {
 
 }

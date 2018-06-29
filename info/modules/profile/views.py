@@ -10,10 +10,11 @@ from info.utils.response_code import RET
 
 # Todo 关注
 
-# Todo 新闻列表
+
 @profile_blu.route('/news_list')
 @user_login_data
 def news_list():
+	"""新闻列表"""
 	page = request.args.get('p', 1)
 	try:
 		page = int(page)
@@ -46,10 +47,10 @@ def news_list():
 	return render_template('news/user_news_list.html', data=data)
 
 
-# Todo 新闻发布
 @profile_blu.route('/publish', methods=['POST', 'GET'])
 @user_login_data
 def publish():
+	"""新闻发布"""
 	if request.method == 'GET':
 		categories_mo_list = Category.query.filter(Category.id != 1).all()
 		categories = []
@@ -104,10 +105,10 @@ def publish():
 # return redirect(url_for('profile.news_list'))
 
 
-# Todo 收藏
 @profile_blu.route('/collection')
 @user_login_data
 def collection():
+	"""收藏"""
 	user = g.user
 	# 获取当前页,默认1
 	page = request.args.get('p', 1)
@@ -140,10 +141,10 @@ def collection():
 	return render_template('news/user_collection.html', data=data)
 
 
-# Todo 密码
 @profile_blu.route('/re_pwd', methods=['POST', 'GET'])
 @user_login_data
 def re_pwd():
+	"""修改密码"""
 	if request.method == 'GET':
 		return render_template('news/user_pass_info.html')
 	# 获取oldpwd/newpwd
@@ -163,10 +164,10 @@ def re_pwd():
 	return jsonify(errno=RET.OK, errmsg="密码修改成功")
 
 
-# Todo 头像
 @profile_blu.route('/pic_info', methods=['POST', 'GET'])
 @user_login_data
 def pic_info():
+	"""上传头像"""
 	user = g.user
 	if request.method == 'GET':
 		# to_dict()中的avatar已经加上了域名前缀
@@ -196,7 +197,6 @@ def pic_info():
 	return jsonify(errno=RET.OK, errmsg="OK", data=data)
 
 
-# Todo 基本资料
 @profile_blu.route('/base_info', methods=['POST', 'GET'])
 @user_login_data
 def base_info():

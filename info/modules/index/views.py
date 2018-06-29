@@ -10,7 +10,7 @@ from . import index_blu
 
 @index_blu.route('/news_list')
 def news_list():
-	# Todo 左侧新闻
+	"""左侧新闻列表"""
 	# 获取数据(分类cid/第几页page/每页显示条数per_page)
 	data_dict = request.args
 	cid = data_dict.get('cid', 1)
@@ -45,7 +45,6 @@ def news_list():
 		return jsonify(errno=RET.DBERR, errmsg='数据库查询错误')
 	# 从paginate_list对象中获取数据
 	news_model_list = paginate_ob.items  # 模型对象列表
-	# Todo
 	total_page = paginate_ob.pages
 	current_page = paginate_ob.page
 
@@ -64,8 +63,7 @@ def news_list():
 @index_blu.route('/')
 @user_login_data
 def index():
-	# Todo 右侧点击排行
-
+	"""右侧排行"""
 	# 从mysql中按照点击量获取news数据,最多显示6条数据
 	news_ob_list = None
 	try:
@@ -76,8 +74,6 @@ def index():
 	click_news_list = []
 	for ob in news_ob_list:
 		click_news_list.append(ob.to_dict())
-
-	# Todo 上方分分类
 	categories_data = []
 	# 获取分类数据(分类id/)
 	categories_ob_list = Category.query.all()

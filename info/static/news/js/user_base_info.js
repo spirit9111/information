@@ -20,7 +20,6 @@ $(function () {
 			alert('请选择性别')
 		}
 
-		// TODO 修改用户信息接口
 
 		var params = {
 			"signature": signature,

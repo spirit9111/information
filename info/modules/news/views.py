@@ -73,7 +73,6 @@ def comment_like():
 	return jsonify(errno=RET.OK, errmsg="点赞成功")
 
 
-# Todo 评论新闻/增加评论父评论的功能
 @news_blu.route('/news_comment', methods=['POST'])
 @user_login_data
 def news_comment():
@@ -194,9 +193,7 @@ def news(news_id):
 	click_news_list = []
 	for ob in news_ob_list:
 		click_news_list.append(ob.to_dict())
-	# # Todo 上方分分类
 	user = g.user
-	# Todo 左侧详情页
 	# 判断news_id是否为空
 	if not news_id:
 		return jsonify(errno=RET.PARAMERR, errmsg="未能获取参数")
@@ -217,7 +214,6 @@ def news(news_id):
 		return jsonify(errno=RET.DATAEXIST, errmsg="数据不存在")
 	news_ob.clicks += 1
 	news_data_dict = news_ob.to_dict()
-	# Todo 收藏功能
 	# 获取用户是谁user 新闻是哪个news_id
 	# 默认没有收藏
 	is_collected = False
@@ -230,7 +226,6 @@ def news(news_id):
 	if news_id in news_id_list:
 		is_collected = True
 
-	# Todo 显示点赞的状态
 	# 查询出已经点赞的评论全部id,登录状态下
 	comment_like_id_list = []
 	if user:

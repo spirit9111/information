@@ -39,7 +39,6 @@ def create_app(config_name):
 	global redis_store
 	redis_store = redis.StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
 
-	# Todo 开启CSRF保护功能 1.cookie中设置 2.往表单中设置
 	# CSRFProtect可以自动验证来自 表单 和 cookie 中的csrf_token
 	CSRFProtect(app)
 
