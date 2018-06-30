@@ -8,7 +8,40 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
-# Todo 关注
+@profile_blu.route('/follow_list')
+@user_login_data
+def follow_list():
+	"""我的关注"""
+	page = request.args.get('page', 1)
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.debug(e)
+		page = 1
+	user = g.user
+
+	current_page = 1
+	total_page = 1
+	user_mo_list = []
+	try:
+		paginate_mo = user.followed.paginate(page, 10, False)
+		current_page = paginate_mo.page
+		total_page = paginate_mo.pages
+		user_mo_list = paginate_mo.items
+	except Exception as e:
+		current_app.logger.debug(e)
+
+	user_data_list = []
+	for i in user_mo_list:
+		user_data_list.append(i.to_dict())
+
+	data = {
+		"user_data_list": user_data_list,
+		"current_page": current_page,
+		"total_page": total_page,
+	}
+
+	return render_template('news/user_follow.html', data=data)
 
 
 @profile_blu.route('/news_list')
