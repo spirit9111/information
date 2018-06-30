@@ -56,13 +56,13 @@ def other_news_list():
 	return jsonify(errno=RET.OK, errmsg="OK", data=data)
 
 
-@profile_blu.route('/other/<int:user_id>')
+@profile_blu.route('/other')
 @user_login_data
-def other(user_id):
+def other():
 	user = g.user
 
 	# 去查询其他人的用户信息
-	other_id = user_id
+	other_id = request.args.get("user_id")
 
 	if not other_id:
 		abort(404)
