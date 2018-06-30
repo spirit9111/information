@@ -8,6 +8,14 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
+
+
+
+
+
+
+
+
 @profile_blu.route('/follow_list')
 @user_login_data
 def follow_list():
@@ -135,7 +143,6 @@ def publish():
 	return jsonify(errno=RET.OK, errmsg="等待审核!")
 
 
-# return redirect(url_for('profile.news_list'))
 
 
 @profile_blu.route('/collection')

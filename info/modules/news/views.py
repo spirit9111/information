@@ -318,7 +318,7 @@ def news(news_id):
 		# 查询出当前登录用户所有的关注的人的列表
 		followed_list = user.followed
 		if news_ob.user in followed_list:
-			news_ob['is_followed'] = True
+			is_followed = True
 
 	data = {
 		"user": user.to_dict() if user else None,
