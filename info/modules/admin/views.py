@@ -11,6 +11,8 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
+# Todo 关注
+
 
 @admin_blu.route('/news_type', methods=['POST', 'GET'])
 def news_type():
@@ -93,6 +95,8 @@ def news_edit_detail():
 		}
 
 		return render_template('admin/news_edit_detail.html', data=data)
+
+
 	# post进入这里
 	news_id = request.form.get("news_id")
 	title = request.form.get("title")

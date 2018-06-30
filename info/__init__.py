@@ -6,13 +6,12 @@ from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
+from logging.handlers import RotatingFileHandler
+import logging
+from config import config
 
 db = SQLAlchemy()
 redis_store = None
-import logging
-from logging.handlers import RotatingFileHandler
-
-from config import config
 
 
 def setup_log(config_name):

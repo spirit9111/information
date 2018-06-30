@@ -47,7 +47,7 @@
 			{#			</ul>#}
 		{% endblock %}
 
-		{#判断条件怎么写#}
+
 		{% if data.user %}
 			<div class="user_login fr">
 				{#如果用户有头像用自己的,没有则使用默认的#}
@@ -86,7 +86,7 @@
 			{% block rightBlock %}
 				{% for news in data.click_news_list %}
 					<li><span class="{{ loop.index | do_index_class }}">{{ loop.index }}  </span><a
-							href="#">{{ news.title }}</a></li>
+							href="{{ url_for('news.news',news_id=news.id) }}">{{ news.title }}</a></li>
 				{% endfor %}
 			{% endblock %}
 		</ul>

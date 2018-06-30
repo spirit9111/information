@@ -1,11 +1,61 @@
 from flask import render_template, current_app, session, request, g, jsonify
-
 from info import db
 from info.constants import CLICK_RANK_MAX_NEWS
 from info.models import News, User, Comment, CommentLike
 from info.modules.news import news_blu
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
+
+
+@news_blu.route('/follow', methods=['POST'])
+@user_login_data
+def follow():
+	"""关注作者"""
+	user = g.user
+	if not user:
+		return jsonify(errno=RET.SESSIONERR, errmsg="用户未登陆")
+
+	user_id = request.json.get('user_id')
+	action = request.json.get('action')
+
+	if not all([user_id, action]):
+		return jsonify(errno=RET.PARAMERR, errmsg="未能获取参数")
+
+	# 校验参数
+	if action not in ['follow', 'unfollow']:
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+	try:
+		user_id = int(user_id)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.PARAMERR, errmsg="参数comment_id错误")
+
+	# 判断新闻作者是否存在
+	try:
+		user_mo = User.query.get(user_id)
+	except Exception as e:
+		current_app.logger.debug(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据库查询异常")
+
+	if not user_mo:
+		return jsonify(errno=RET.NODATA, errmsg="作者不存在")
+
+	# 判断action
+	if action == 'unfollow':
+		# 如果能在作者的fans中查到已登录的用户,就执行取消关注的操作
+		if user_mo.followers.filter(User.id == user.id).first():
+			user_mo.followers.remove(user)
+		else:
+			return jsonify(errno=RET.DATAEXIST, errmsg="还未关注该作者")
+
+	else:
+		# 如果没有关注
+		if not user_mo.followers.filter(User.id == user.id).first():
+			user_mo.followers.append(user)
+		else:
+			return jsonify(errno=RET.DATAEXIST, errmsg="已经关注过了")
+	return jsonify(errno=RET.OK, errmsg="操作成功")
 
 
 @news_blu.route('/comment_like', methods=['POST'])
@@ -184,6 +234,7 @@ def news_collect():
 @news_blu.route('/<int:news_id>')
 @user_login_data
 def news(news_id):
+	"""新闻详情页"""
 	news_ob_list = None
 	try:
 		news_ob_list = News.query.order_by(News.clicks.desc()).limit(CLICK_RANK_MAX_NEWS)
@@ -215,6 +266,7 @@ def news(news_id):
 	news_ob.clicks += 1
 	news_data_dict = news_ob.to_dict()
 	# 获取用户是谁user 新闻是哪个news_id
+
 	# 默认没有收藏
 	is_collected = False
 	# 获取用户所有的新闻收藏表，判断news在不在里面再去查询
@@ -259,12 +311,22 @@ def news(news_id):
 
 		comment_data_dict.append(comment_dict)
 
+	# 判断是否关注,默认没有关注
+	is_followed = False
+	# 如果新闻有作者 and 用户已登录
+	if news_ob.user and user:
+		# 查询出当前登录用户所有的关注的人的列表
+		followed_list = user.followed
+		if news_ob.user in followed_list:
+			news_ob['is_followed'] = True
+
 	data = {
 		"user": user.to_dict() if user else None,
 		"click_news_list": click_news_list,
 		"news": news_data_dict,
 		"is_collected": is_collected,
-		"comments": comment_data_dict
+		"comments": comment_data_dict,
+		"is_followed": is_followed
 	}
 
 	return render_template('news/detail.html', data=data)
