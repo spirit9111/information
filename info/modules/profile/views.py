@@ -1,4 +1,4 @@
-from flask import render_template, redirect, g, request, jsonify, current_app, url_for
+from flask import render_template, redirect, g, request, jsonify, current_app, url_for, abort
 from info import db
 from info.constants import QINIU_DOMIN_PREFIX
 from info.libs.upload_pic import upload_pic
@@ -8,12 +8,87 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 
 
+@profile_blu.route('/other_news_list')
+def other_news_list():
+	"""返回指定用户的发布的新闻"""
+
+	# 1. 取参数
+	other_id = request.args.get("user_id")
+	page = request.args.get("p", 1)
+
+	# 2. 判断参数
+	try:
+		page = int(page)
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.PARAMERR, errmsg="参数错误")
+
+	try:
+		other = User.query.get(other_id)
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据查询失败")
+
+	if not other:
+		return jsonify(errno=RET.NODATA, errmsg="当前用户不存在")
+
+	try:
+		paginate = other.news_list.paginate(page, 10, False)
+		# 获取当前页数据
+		news_li = paginate.items
+		# 获取当前页
+		current_page = paginate.page
+		# 获取总页数
+		total_page = paginate.pages
+	except Exception as e:
+		current_app.logger.error(e)
+		return jsonify(errno=RET.DBERR, errmsg="数据查询失败")
+
+	news_dict_li = []
+	for news_item in news_li:
+		news_dict_li.append(news_item.to_basic_dict())
+
+	data = {
+		"news_list": news_dict_li,
+		"total_page": total_page,
+		"current_page": current_page
+	}
+	return jsonify(errno=RET.OK, errmsg="OK", data=data)
 
 
+@profile_blu.route('/other/<int:user_id>')
+@user_login_data
+def other(user_id):
+	user = g.user
 
+	# 去查询其他人的用户信息
+	other_id = user_id
 
+	if not other_id:
+		abort(404)
 
+	# 查询指定id的用户信息
+	try:
+		other = User.query.get(other_id)
+	except Exception as e:
+		current_app.logger.error(e)
 
+	if not other:
+		abort(404)
+
+	is_followed = False
+	# if 当前新闻有作者，并且 当前登录用户已关注过这个用户
+	if other and user:
+		# if user 是否关注过 news.user
+		if other in user.followed:
+			is_followed = True
+
+	data = {
+		"is_followed": is_followed,
+		"user": g.user.to_dict() if g.user else None,
+		"other_info": other.to_dict()
+	}
+	return render_template('news/other.html', data=data)
 
 
 @profile_blu.route('/follow_list')
@@ -141,8 +216,6 @@ def publish():
 		current_app.logger.debug(e)
 		return jsonify(errno=RET.DBERR, errmsg="数据库保存失败")
 	return jsonify(errno=RET.OK, errmsg="等待审核!")
-
-
 
 
 @profile_blu.route('/collection')
