@@ -41,11 +41,7 @@
 					{% endif %}
 				</td>
 				<td>
-				{% if news.status == 1 %}
 					<a href="{{ url_for("admin.news_rev_detail", news_id=news.id) }}" class="review">审核</a>
-				{% else %}
-					<a href="{{ url_for('admin.news_edit_detail') }}?news_id={{ news.id }}" class="edit">编辑</a>
-				{% endif %}
 				</td>
 			</tr>
 		{% endfor %}
